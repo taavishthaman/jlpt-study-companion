@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JLPT Listening Practice</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --bg-card: #ffffff;
+      --bg-hover: #f5f0ea;
+      --text: #1a1a2e;
+      --text-secondary: #5a5a7a;
+      --accent: #c0392b;
+      --accent-light: #e74c3c;
+      --accent-bg: #fdf0ef;
+      --correct: #27ae60;
+      --correct-bg: #eafaf1;
+      --wrong: #c0392b;
+      --wrong-bg: #fdf0ef;
+      --border: #e8e4df;
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+      --n5-color: #2980b9;
+      --n5-bg: #ebf5fb;
+      --n4-color: #8e44ad;
+      --n4-bg: #f4ecf7;
+      --radius: 12px;
+      --radius-lg: 20px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 40px 16px 20px;
+    }
+
+    header h1 {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    header h1 .jp {
+      color: var(--accent);
+    }
+
+    header p {
+      color: var(--text-secondary);
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    /* Level Selector */
+    .level-select {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin: 32px 0;
+    }
+
+    .level-card {
+      flex: 1;
+      max-width: 280px;
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .level-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .level-card.n5 { border-color: transparent; background: var(--n5-bg); }
+    .level-card.n5:hover { border-color: var(--n5-color); }
+    .level-card.n4 { border-color: transparent; background: var(--n4-bg); }
+    .level-card.n4:hover { border-color: var(--n4-color); }
+
+    .level-card .level-badge {
+      display: inline-block;
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .level-card.n5 .level-badge { color: var(--n5-color); }
+    .level-card.n4 .level-badge { color: var(--n4-color); }
+
+    .level-card .level-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .level-card .level-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+
+    /* Quiz Screen */
+    .quiz-screen { display: none; }
+    .quiz-screen.active { display: block; }
+
+    .quiz-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      margin-bottom: 16px;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      transition: background 0.2s;
+    }
+    .back-btn:hover { background: var(--bg-hover); }
+
+    .progress-info {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .score-info {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--correct);
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .n5-theme .progress-fill { background: var(--n5-color); }
+    .n4-theme .progress-fill { background: var(--n4-color); }
+
+    /* Question Type Badge */
+    .question-type {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .n5-theme .question-type { background: var(--n5-bg); color: var(--n5-color); }
+    .n4-theme .question-type { background: var(--n4-bg); color: var(--n4-color); }
+
+    /* Audio Section */
+    .audio-section {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .play-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .n5-theme .play-btn { background: var(--n5-bg); color: var(--n5-color); }
+    .n4-theme .play-btn { background: var(--n4-bg); color: var(--n4-color); }
+
+    .play-btn:hover {
+      transform: scale(1.08);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .play-btn.playing {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    .play-btn svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .play-hint {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .question-text {
+      margin-top: 20px;
+      font-size: 1rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Speed control */
+    .speed-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .speed-btn {
+      background: var(--bg-hover);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+
+    .speed-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    /* Answer Options */
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      font-size: 0.95rem;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      line-height: 1.5;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--text-secondary);
+      background: var(--bg-hover);
+    }
+
+    .option-label {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      background: var(--bg);
+      color: var(--text-secondary);
+    }
+
+    .option-btn.correct {
+      border-color: var(--correct);
+      background: var(--correct-bg);
+    }
+    .option-btn.correct .option-label {
+      background: var(--correct);
+      color: #fff;
+    }
+
+    .option-btn.wrong {
+      border-color: var(--wrong);
+      background: var(--wrong-bg);
+    }
+    .option-btn.wrong .option-label {
+      background: var(--wrong);
+      color: #fff;
+    }
+
+    .option-btn:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+    .option-btn.correct:disabled,
+    .option-btn.wrong:disabled { opacity: 1; }
+
+    /* Explanation */
+    .explanation {
+      display: none;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--correct);
+      animation: slideIn 0.3s ease;
+    }
+
+    .explanation.visible { display: block; }
+
+    .explanation .jp-sentence {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .explanation .romaji {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-style: italic;
+      margin-bottom: 6px;
+    }
+
+    .explanation .translation {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Next Button */
+    .next-btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: #fff;
+      transition: all 0.2s;
+      display: none;
+    }
+
+    .next-btn.visible { display: block; }
+    .n5-theme .next-btn { background: var(--n5-color); }
+    .n4-theme .next-btn { background: var(--n4-color); }
+    .next-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* Results Screen */
+    .results-screen { display: none; }
+    .results-screen.active { display: block; }
+
+    .results-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 40px 28px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin: 24px 0;
+    }
+
+    .results-score {
+      font-size: 4rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .results-score .of {
+      font-size: 1.5rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .results-label {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .results-message {
+      font-size: 1.1rem;
+      margin-top: 20px;
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      font-weight: 500;
+    }
+
+    .results-message.great { background: var(--correct-bg); color: var(--correct); }
+    .results-message.good { background: var(--n5-bg); color: var(--n5-color); }
+    .results-message.retry { background: var(--wrong-bg); color: var(--wrong); }
+
+    .results-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 28px;
+    }
+
+    .results-actions button {
+      padding: 14px 28px;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+    }
+
+    .results-actions button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .results-actions .primary-btn {
+      border: none;
+      color: #fff;
+    }
+    .n5-theme .primary-btn { background: var(--n5-color); }
+    .n4-theme .primary-btn { background: var(--n4-color); }
+
+    /* Review List */
+    .review-list {
+      margin-top: 24px;
+      text-align: left;
+    }
+
+    .review-list h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .review-item {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 8px;
+      border-left: 4px solid;
+      box-shadow: var(--shadow);
+    }
+
+    .review-item.was-correct { border-color: var(--correct); }
+    .review-item.was-wrong { border-color: var(--wrong); }
+
+    .review-item .ri-sentence {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .review-item .ri-answer {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .review-item .ri-answer strong {
+      color: var(--correct);
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.6rem; }
+      .level-select { flex-direction: column; align-items: center; }
+      .level-card { max-width: 100%; }
+      .audio-section { padding: 24px 16px; }
+      .results-card { padding: 28px 20px; }
+      .results-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Home Screen -->
+  <div id="home-screen">
+    <header>
+      <h1><span class="jp">聴解</span> Listening Practice</h1>
+      <p>Train your ear for the JLPT listening section</p>
+    </header>
+
+    <div class="container">
+      <div class="level-select">
+        <div class="level-card n5" onclick="startQuiz('n5')">
+          <div class="level-badge">N5</div>
+          <div class="level-label">Beginner</div>
+          <div class="level-desc">10 questions &middot; Basic</div>
+        </div>
+        <div class="level-card n4" onclick="startQuiz('n4')">
+          <div class="level-badge">N4</div>
+          <div class="level-label">Elementary</div>
+          <div class="level-desc">10 questions &middot; Intermediate</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quiz-screen" class="quiz-screen">
+    <div class="container">
+      <div class="quiz-header">
+        <button class="back-btn" onclick="goHome()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
+        <span class="progress-info" id="progress-info"></span>
+        <span class="score-info" id="score-info"></span>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+
+      <div id="question-type" class="question-type"></div>
+
+      <div class="audio-section">
+        <button class="play-btn" id="play-btn" onclick="playAudio()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="play-hint" id="play-hint">Tap to listen</div>
+        <div class="speed-control">
+          <button class="speed-btn" data-speed="0.7" onclick="setSpeed(0.7, this)">Slow</button>
+          <button class="speed-btn active" data-speed="1" onclick="setSpeed(1, this)">Normal</button>
+        </div>
+        <div class="question-text" id="question-text"></div>
+      </div>
+
+      <div class="options" id="options"></div>
+
+      <div class="explanation" id="explanation">
+        <div class="jp-sentence" id="exp-sentence"></div>
+        <div class="romaji" id="exp-romaji"></div>
+        <div class="translation" id="exp-translation"></div>
+      </div>
+
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question</button>
+    </div>
+  </div>
+
+  <!-- Results Screen -->
+  <div id="results-screen" class="results-screen">
+    <div class="container">
+      <div class="quiz-header">
+        <button class="back-btn" onclick="goHome()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Home
+        </button>
+      </div>
+
+      <div class="results-card">
+        <div class="results-score" id="results-score"></div>
+        <div class="results-label">Correct Answers</div>
+        <div class="results-message" id="results-message"></div>
+        <div class="results-actions">
+          <button class="primary-btn" onclick="retryQuiz()">Try Again</button>
+          <button onclick="goHome()">Change Level</button>
+        </div>
+      </div>
+
+      <div class="review-list" id="review-list">
+        <h3>Review</h3>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Question bank
+    const questions = {
+      n5: [
+        {
+          type: "Task Comprehension",
+          audio: "すみません、トイレはどこですか。",
+          question: "What is the speaker asking about?",
+          options: [
+            "Where the bathroom is",
+            "Where the restaurant is",
+            "What time it is",
+            "How much it costs"
+          ],
+          correct: 0,
+          romaji: "Sumimasen, toire wa doko desu ka.",
+          translation: "Excuse me, where is the bathroom?"
+        },
+        {
+          type: "Point Comprehension",
+          audio: "きょうは とても あつい ですね。",
+          question: "What is being said about today?",
+          options: [
+            "It's very cold",
+            "It's very hot",
+            "It's raining",
+            "It's windy"
+          ],
+          correct: 1,
+          romaji: "Kyou wa totemo atsui desu ne.",
+          translation: "It's very hot today, isn't it?"
+        },
+        {
+          type: "Point Comprehension",
+          audio: "わたしは まいにち ろくじに おきます。",
+          question: "What time does this person wake up?",
+          options: [
+            "7 o'clock",
+            "5 o'clock",
+            "6 o'clock",
+            "8 o'clock"
+          ],
+          correct: 2,
+          romaji: "Watashi wa mainichi rokuji ni okimasu.",
+          translation: "I wake up at 6 o'clock every day."
+        },
+        {
+          type: "Task Comprehension",
+          audio: "すみません、この りんごは いくらですか。",
+          question: "What does the speaker want to know?",
+          options: [
+            "Where to buy apples",
+            "How many apples there are",
+            "The price of the apple",
+            "If the apple is delicious"
+          ],
+          correct: 2,
+          romaji: "Sumimasen, kono ringo wa ikura desu ka.",
+          translation: "Excuse me, how much is this apple?"
+        },
+        {
+          type: "Point Comprehension",
+          audio: "にちようびに ともだちと えいがを みました。",
+          question: "What did they do on Sunday?",
+          options: [
+            "Went shopping with family",
+            "Watched a movie with a friend",
+            "Studied at the library",
+            "Played sports at school"
+          ],
+          correct: 1,
+          romaji: "Nichiyoubi ni tomodachi to eiga wo mimashita.",
+          translation: "I watched a movie with a friend on Sunday."
+        },
+        {
+          type: "Task Comprehension",
+          audio: "あしたは やすみ ですから、うみに いきたい です。",
+          question: "What does the person want to do tomorrow?",
+          options: [
+            "Go to the mountains",
+            "Stay at home",
+            "Go to the sea / beach",
+            "Visit a friend"
+          ],
+          correct: 2,
+          romaji: "Ashita wa yasumi desu kara, umi ni ikitai desu.",
+          translation: "Tomorrow is a day off, so I want to go to the beach."
+        },
+        {
+          type: "Quick Response",
+          audio: "すこし さむいですね。まどを しめて ください。",
+          question: "What is the request?",
+          options: [
+            "Open the window",
+            "Close the window",
+            "Turn off the lights",
+            "Turn on the heater"
+          ],
+          correct: 1,
+          romaji: "Sukoshi samui desu ne. Mado wo shimete kudasai.",
+          translation: "It's a bit cold, isn't it. Please close the window."
+        },
+        {
+          type: "Point Comprehension",
+          audio: "わたしの かぞくは よにん です。ちちと ははと あにと わたし です。",
+          question: "How many people are in the family?",
+          options: [
+            "3 people",
+            "5 people",
+            "4 people",
+            "6 people"
+          ],
+          correct: 2,
+          romaji: "Watashi no kazoku wa yonin desu. Chichi to haha to ani to watashi desu.",
+          translation: "My family has 4 people. My father, mother, older brother, and me."
+        },
+        {
+          type: "Task Comprehension",
+          audio: "すみません、えきは どちらですか。",
+          question: "What is the speaker looking for?",
+          options: [
+            "A hospital",
+            "A bank",
+            "The station",
+            "A school"
+          ],
+          correct: 2,
+          romaji: "Sumimasen, eki wa dochira desu ka.",
+          translation: "Excuse me, which way is the station?"
+        },
+        {
+          type: "Point Comprehension",
+          audio: "あした しけんが ありますから、こんばん べんきょうします。",
+          question: "Why will they study tonight?",
+          options: [
+            "They have free time",
+            "Their friend asked them to",
+            "There's an exam tomorrow",
+            "They want to read a book"
+          ],
+          correct: 2,
+          romaji: "Ashita shiken ga arimasu kara, konban benkyou shimasu.",
+          translation: "There's an exam tomorrow, so I'll study tonight."
+        }
+      ],
+      n4: [
+        {
+          type: "Point Comprehension",
+          audio: "つぎの でんしゃは じゅうごふん おくれるそうです。",
+          question: "What did the speaker hear?",
+          options: [
+            "The train has been cancelled",
+            "The next train is 15 minutes late",
+            "The train will arrive in 5 minutes",
+            "The last train has already left"
+          ],
+          correct: 1,
+          romaji: "Tsugi no densha wa juugofun okureru sou desu.",
+          translation: "I heard the next train will be 15 minutes late."
+        },
+        {
+          type: "Point Comprehension",
+          audio: "かのじょは にほんに いった ことが ないので、いちど いってみたいと いっていました。",
+          question: "What did she say?",
+          options: [
+            "She has been to Japan many times",
+            "She doesn't want to go to Japan",
+            "She wants to visit Japan at least once",
+            "She is planning to move to Japan"
+          ],
+          correct: 2,
+          romaji: "Kanojo wa nihon ni itta koto ga nai node, ichido itte mitai to itte imashita.",
+          translation: "She's never been to Japan, so she said she'd like to try going once."
+        },
+        {
+          type: "Task Comprehension",
+          audio: "すみません、この にもつを うけとりに きたんですが。",
+          question: "Why did the person come?",
+          options: [
+            "To send a package",
+            "To pick up a package",
+            "To ask for directions",
+            "To return a product"
+          ],
+          correct: 1,
+          romaji: "Sumimasen, kono nimotsu wo uketori ni kitan desu ga.",
+          translation: "Excuse me, I came to pick up this package."
+        },
+        {
+          type: "Point Comprehension",
+          audio: "さいきん うんどうを はじめたら、よく ねられるように なりました。",
+          question: "What happened after starting exercise?",
+          options: [
+            "They lost weight",
+            "They made new friends",
+            "They can sleep better now",
+            "They feel more tired"
+          ],
+          correct: 2,
+          romaji: "Saikin undou wo hajimetara, yoku nerareru you ni narimashita.",
+          translation: "Recently after I started exercising, I became able to sleep well."
+        },
+        {
+          type: "Quick Response",
+          audio: "あした あめが ふるかもしれないので、かさを もっていった ほうが いいですよ。",
+          question: "What is the advice?",
+          options: [
+            "Wear warm clothes",
+            "Bring an umbrella",
+            "Stay at home",
+            "Drive instead of walking"
+          ],
+          correct: 1,
+          romaji: "Ashita ame ga furu kamoshirenai node, kasa wo motte itta hou ga ii desu yo.",
+          translation: "It might rain tomorrow, so you'd better take an umbrella."
+        },
+        {
+          type: "Task Comprehension",
+          audio: "この しごとは らいしゅうまでに おわらせなければ なりません。",
+          question: "When must the work be finished?",
+          options: [
+            "Today",
+            "By tomorrow",
+            "By next week",
+            "By the end of the month"
+          ],
+          correct: 2,
+          romaji: "Kono shigoto wa raishuu made ni owarasenakereba narimasen.",
+          translation: "This work must be finished by next week."
+        },
+        {
+          type: "Quick Response",
+          audio: "えきまえに あたらしい レストランが できたらしいですよ。いってみませんか。",
+          question: "What is being suggested?",
+          options: [
+            "Cooking at home",
+            "Going to a new restaurant near the station",
+            "Taking the train to another city",
+            "Meeting at the station"
+          ],
+          correct: 1,
+          romaji: "Ekimae ni atarashii resutoran ga dekita rashii desu yo. Itte mimasen ka.",
+          translation: "It seems a new restaurant opened in front of the station. Shall we try going?"
+        },
+        {
+          type: "Task Comprehension",
+          audio: "すみません、よやくした やまだ ですが、じかんを へんこう しても いいですか。",
+          question: "What does Yamada want to do?",
+          options: [
+            "Cancel a reservation",
+            "Make a new reservation",
+            "Change the reservation time",
+            "Confirm the reservation"
+          ],
+          correct: 2,
+          romaji: "Sumimasen, yoyaku shita Yamada desu ga, jikan wo henkou shitemo ii desu ka.",
+          translation: "Excuse me, I'm Yamada who made a reservation — may I change the time?"
+        },
+        {
+          type: "Point Comprehension",
+          audio: "きのう かった くつが すこし ちいさかったので、こうかん してもらえますか。",
+          question: "What is the problem?",
+          options: [
+            "The shoes are the wrong color",
+            "The shoes are too expensive",
+            "The shoes bought yesterday are too small",
+            "The shoes are broken"
+          ],
+          correct: 2,
+          romaji: "Kinou katta kutsu ga sukoshi chiisakatta node, koukan shite moraemasu ka.",
+          translation: "The shoes I bought yesterday were a little small, so could you exchange them?"
+        },
+        {
+          type: "Task Comprehension",
+          audio: "この へやは つかっても いいですが、じゅうじまでに でなければ なりません。",
+          question: "What is the condition for using the room?",
+          options: [
+            "Must pay a fee",
+            "Must leave by 10 o'clock",
+            "Must ask permission first",
+            "Cannot eat or drink inside"
+          ],
+          correct: 1,
+          romaji: "Kono heya wa tsukattemo ii desu ga, juuji made ni denakereba narimasen.",
+          translation: "You may use this room, but you must leave by 10 o'clock."
+        }
+      ]
+    };
+
+    // State
+    let currentLevel = null;
+    let currentIndex = 0;
+    let score = 0;
+    let answered = false;
+    let speechRate = 1;
+    let userAnswers = [];
+
+    function startQuiz(level) {
+      currentLevel = level;
+      currentIndex = 0;
+      score = 0;
+      answered = false;
+      userAnswers = [];
+
+      document.getElementById('home-screen').style.display = 'none';
+      document.getElementById('results-screen').classList.remove('active');
+
+      const quizScreen = document.getElementById('quiz-screen');
+      quizScreen.classList.add('active');
+      quizScreen.classList.remove('n5-theme', 'n4-theme');
+      quizScreen.classList.add(level + '-theme');
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[currentLevel][currentIndex];
+      const total = questions[currentLevel].length;
+
+      answered = false;
+
+      document.getElementById('progress-info').textContent = `${currentIndex + 1} / ${total}`;
+      document.getElementById('score-info').textContent = `${score} correct`;
+      document.getElementById('progress-fill').style.width = `${((currentIndex) / total) * 100}%`;
+      document.getElementById('question-type').textContent = q.type;
+      document.getElementById('question-text').textContent = q.question;
+      document.getElementById('play-hint').textContent = 'Tap to listen';
+
+      const optionsEl = document.getElementById('options');
+      optionsEl.innerHTML = '';
+      const labels = ['A', 'B', 'C', 'D'];
+      q.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<span class="option-label">${labels[i]}</span><span>${opt}</span>`;
+        btn.onclick = () => selectAnswer(i);
+        optionsEl.appendChild(btn);
+      });
+
+      document.getElementById('explanation').classList.remove('visible');
+      document.getElementById('next-btn').classList.remove('visible');
+
+      const playBtn = document.getElementById('play-btn');
+      playBtn.classList.remove('playing');
+
+      // Auto-play the audio
+      setTimeout(() => playAudio(), 500);
+    }
+
+    let currentAudio = null;
+
+    function playAudio() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+
+      const suffix = speechRate < 1 ? '_slow' : '';
+      const src = `audio/${currentLevel}/q${currentIndex}${suffix}.mp3`;
+      currentAudio = new Audio(src);
+
+      const playBtn = document.getElementById('play-btn');
+      playBtn.classList.add('playing');
+      document.getElementById('play-hint').textContent = 'Playing...';
+
+      currentAudio.onended = () => {
+        playBtn.classList.remove('playing');
+        document.getElementById('play-hint').textContent = 'Tap to replay';
+      };
+
+      currentAudio.onerror = () => {
+        playBtn.classList.remove('playing');
+        document.getElementById('play-hint').textContent = 'Audio error — tap to retry';
+      };
+
+      currentAudio.play();
+    }
+
+    function playReviewAudio(level, index) {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+      const src = `audio/${level}/q${index}.mp3`;
+      currentAudio = new Audio(src);
+      currentAudio.play();
+    }
+
+    function setSpeed(speed, btn) {
+      speechRate = speed;
+      document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function selectAnswer(index) {
+      if (answered) return;
+      answered = true;
+
+      const q = questions[currentLevel][currentIndex];
+      const isCorrect = index === q.correct;
+      if (isCorrect) score++;
+
+      userAnswers.push({ questionIndex: currentIndex, chosen: index, correct: isCorrect });
+
+      const buttons = document.querySelectorAll('.option-btn');
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === q.correct) btn.classList.add('correct');
+        if (i === index && !isCorrect) btn.classList.add('wrong');
+      });
+
+      document.getElementById('score-info').textContent = `${score} correct`;
+
+      // Show explanation
+      document.getElementById('exp-sentence').textContent = q.audio;
+      document.getElementById('exp-romaji').textContent = q.romaji;
+      document.getElementById('exp-translation').textContent = q.translation;
+      document.getElementById('explanation').classList.add('visible');
+
+      const nextBtn = document.getElementById('next-btn');
+      const total = questions[currentLevel].length;
+      nextBtn.textContent = currentIndex < total - 1 ? 'Next Question' : 'See Results';
+      nextBtn.classList.add('visible');
+    }
+
+    function nextQuestion() {
+      currentIndex++;
+      const total = questions[currentLevel].length;
+
+      if (currentIndex >= total) {
+        showResults();
+        return;
+      }
+
+      showQuestion();
+    }
+
+    function showResults() {
+      document.getElementById('quiz-screen').classList.remove('active');
+      const resultsScreen = document.getElementById('results-screen');
+      resultsScreen.classList.add('active');
+      resultsScreen.classList.remove('n5-theme', 'n4-theme');
+      resultsScreen.classList.add(currentLevel + '-theme');
+
+      const total = questions[currentLevel].length;
+      const pct = score / total;
+
+      document.getElementById('results-score').innerHTML = `${score} <span class="of">/ ${total}</span>`;
+
+      const msgEl = document.getElementById('results-message');
+      if (pct >= 0.8) {
+        msgEl.textContent = 'Excellent! Your listening skills are strong!';
+        msgEl.className = 'results-message great';
+      } else if (pct >= 0.5) {
+        msgEl.textContent = 'Good effort! Keep practicing to improve.';
+        msgEl.className = 'results-message good';
+      } else {
+        msgEl.textContent = "Don't give up! Practice makes perfect.";
+        msgEl.className = 'results-message retry';
+      }
+
+      document.getElementById('progress-fill').style.width = '100%';
+
+      // Build review list
+      const reviewEl = document.getElementById('review-list');
+      reviewEl.innerHTML = '<h3>Review</h3>';
+      userAnswers.forEach(a => {
+        const q = questions[currentLevel][a.questionIndex];
+        const div = document.createElement('div');
+        div.className = `review-item ${a.correct ? 'was-correct' : 'was-wrong'}`;
+        div.innerHTML = `
+          <div class="ri-sentence">${q.audio}</div>
+          <div class="ri-answer">${a.correct ? '&#10003;' : '&#10007;'} ${q.options[a.chosen]}${!a.correct ? ' &rarr; <strong>' + q.options[q.correct] + '</strong>' : ''}</div>
+        `;
+        div.style.cursor = 'pointer';
+        div.title = 'Click to replay';
+        div.onclick = () => playReviewAudio(currentLevel, a.questionIndex);
+        reviewEl.appendChild(div);
+      });
+    }
+
+    function retryQuiz() {
+      startQuiz(currentLevel);
+    }
+
+    function goHome() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+      document.getElementById('quiz-screen').classList.remove('active');
+      document.getElementById('results-screen').classList.remove('active');
+      document.getElementById('home-screen').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
