@@ -19,9 +19,19 @@ export async function GET(req: NextRequest) {
   const where: Record<string, unknown> = { section, level };
   if (type) where.type = type;
 
-  const rows = await prisma.questionBank.findMany({ where, orderBy: { createdAt: "asc" } });
+  const limit = searchParams.get("limit");
 
-  const questions = rows.map((r) => ({
+  const rows = await prisma.questionBank.findMany({ where });
+
+  // Fisher-Yates shuffle
+  for (let i = rows.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rows[i], rows[j]] = [rows[j], rows[i]];
+  }
+
+  const selected = limit ? rows.slice(0, parseInt(limit, 10)) : rows;
+
+  const questions = selected.map((r) => ({
     id: r.id,
     level: r.level,
     section: r.section,

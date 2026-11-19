@@ -4,15 +4,6 @@ import { Level, Section, SECTIONS, Question } from "@/data/types";
 import QuizEngine from "./QuizEngine";
 import QuizResults from "./QuizResults";
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 interface SectionPageProps {
   sectionId: Section;
 }
@@ -54,10 +45,11 @@ export default function SectionPage({ sectionId }: SectionPageProps) {
       });
   }, [level, sectionId]);
 
-  function startQuiz() {
-    let qs = allQuestions;
-    if (questionType) qs = qs.filter(q => q.type === questionType);
-    setQuizQuestions(shuffle(qs).slice(0, 10));
+  async function startQuiz() {
+    const typeParam = questionType ? `&type=${questionType}` : "";
+    const res = await fetch(`/api/quiz?section=${sectionId}&level=${level}&limit=10${typeParam}`);
+    const data = await res.json();
+    setQuizQuestions(data.questions || []);
     setMode("quiz");
   }
 

@@ -3,15 +3,6 @@ import { useState, useEffect } from "react";
 import { Level, Question } from "@/data/types";
 import QuizEngine from "@/components/QuizEngine";
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 type MockPhase = "select" | "loading" | "vocab" | "grammar-reading" | "listening" | "done";
 
 interface PhaseResult {
@@ -38,20 +29,21 @@ export default function MockTestPage() {
     if (!level) return;
     setPhase("loading");
 
+    const vocabLimit = level === "n5" ? 8 : 12;
+    const grammarLimit = level === "n5" ? 8 : 12;
+    const readingLimit = level === "n5" ? 4 : 6;
+    const listenLimit = level === "n5" ? 8 : 10;
+
     const [vocabRes, grammarRes, readingRes, listenRes] = await Promise.all([
-      fetch(`/api/quiz?section=vocabulary&level=${level}`).then(r => r.json()),
-      fetch(`/api/quiz?section=grammar&level=${level}`).then(r => r.json()),
-      fetch(`/api/quiz?section=reading&level=${level}`).then(r => r.json()),
-      fetch(`/api/quiz?section=listening&level=${level}`).then(r => r.json()),
+      fetch(`/api/quiz?section=vocabulary&level=${level}&limit=${vocabLimit}`).then(r => r.json()),
+      fetch(`/api/quiz?section=grammar&level=${level}&limit=${grammarLimit}`).then(r => r.json()),
+      fetch(`/api/quiz?section=reading&level=${level}&limit=${readingLimit}`).then(r => r.json()),
+      fetch(`/api/quiz?section=listening&level=${level}&limit=${listenLimit}`).then(r => r.json()),
     ]);
 
-    setVocabQuestions(shuffle(vocabRes.questions || []).slice(0, level === "n5" ? 8 : 12));
-
-    const grammar = shuffle(grammarRes.questions || []).slice(0, level === "n5" ? 8 : 12);
-    const reading = shuffle(readingRes.questions || []).slice(0, level === "n5" ? 4 : 6);
-    setGrammarReadingQuestions([...grammar, ...reading]);
-
-    setListeningQuestions(shuffle(listenRes.questions || []).slice(0, level === "n5" ? 8 : 10));
+    setVocabQuestions(vocabRes.questions || []);
+    setGrammarReadingQuestions([...(grammarRes.questions || []), ...(readingRes.questions || [])]);
+    setListeningQuestions(listenRes.questions || []);
 
     setPhase("vocab");
   }
