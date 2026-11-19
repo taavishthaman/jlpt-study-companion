@@ -31,24 +31,35 @@ export async function GET(req: NextRequest) {
 
   const selected = limit ? rows.slice(0, parseInt(limit, 10)) : rows;
 
-  const questions = selected.map((r) => ({
-    id: r.id,
-    level: r.level,
-    section: r.section,
-    type: r.type,
-    prompt: r.prompt,
-    promptJp: r.promptJp,
-    context: r.context,
-    contextJp: r.contextJp,
-    options: JSON.parse(r.options),
-    correct: r.correct,
-    explanation: r.explanation,
-    explanationJp: r.explanationJp,
-    audio: r.audio,
-    audioSlow: r.audioSlow,
-    verified: r.verified,
-    source: r.source,
-  }));
+  const questions = selected.map((r) => {
+    const opts: string[] = JSON.parse(r.options);
+    const indices = opts.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    const shuffledOpts = indices.map((i) => opts[i]);
+    const newCorrect = indices.indexOf(r.correct);
+
+    return {
+      id: r.id,
+      level: r.level,
+      section: r.section,
+      type: r.type,
+      prompt: r.prompt,
+      promptJp: r.promptJp,
+      context: r.context,
+      contextJp: r.contextJp,
+      options: shuffledOpts,
+      correct: newCorrect,
+      explanation: r.explanation,
+      explanationJp: r.explanationJp,
+      audio: r.audio,
+      audioSlow: r.audioSlow,
+      verified: r.verified,
+      source: r.source,
+    };
+  });
 
   return NextResponse.json({ questions });
 }
