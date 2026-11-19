@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -44,7 +44,7 @@ model TestAttempt {
   score       Int
   total       Int
   timeSpent   Int
-  details     String?
+  details     Json?
   createdAt   DateTime @default(now())
 
   @@index([userId, level, type])
