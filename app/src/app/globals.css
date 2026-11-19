@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #faf8f5;
+  --bg-card: #ffffff;
+  --text-primary: #1a1a2e;
+  --text-secondary: #5a5a7a;
+  --accent: #c0392b;
+  --n5-color: #2980b9;
+  --n5-bg: #ebf5fb;
+  --n4-color: #8e44ad;
+  --n4-bg: #f4ecf7;
+  --correct: #27ae60;
+  --correct-bg: #eafaf1;
+  --wrong: #c0392b;
+  --wrong-bg: #fdf0ef;
+  --sidebar-bg: #1a1a2e;
+  --sidebar-text: #e0e0e0;
+  --sidebar-active: rgba(255,255,255,0.1);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+}

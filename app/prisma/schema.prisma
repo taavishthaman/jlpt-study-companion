@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  progress     Progress[]
+  testAttempts TestAttempt[]
+}
+
+model Progress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  section     String
+  level       String
+  questionId  String
+  box         Int      @default(0)
+  lastSession Int      @default(0)
+  correct     Int      @default(0)
+  wrong       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, section, level, questionId])
+  @@index([userId, section, level])
+}
+
+model TestAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  level       String
+  type        String
+  score       Int
+  total       Int
+  timeSpent   Int
+  details     String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, level, type])
+}
+
+model QuestionBank {
+  id             String   @id @default(cuid())
+  section        String
+  level          String
+  type           String
+  prompt         String
+  promptJp       String?
+  context        String?
+  contextJp      String?
+  options        String   // JSON array
+  correct        Int
+  explanation    String?
+  explanationJp  String?
+  audio          String?
+  audioSlow      String?
+  verified       Boolean  @default(false)
+  source         String?  // "ai-generated", "jlpt-official", "shin-kanzen-master", etc.
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([section, level])
+  @@index([verified])
+}
