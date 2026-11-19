@@ -52,6 +52,8 @@ export default function QuizEngine({ questions, section, level, onComplete, onBa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pos, speed]);
 
+  if (!q) return null;
+
   function handleSelect(idx: number) {
     if (answered) return;
     setAnswered(true);
