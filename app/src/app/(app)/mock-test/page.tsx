@@ -41,11 +41,18 @@ export default function MockTestPage() {
       fetch(`/api/quiz?section=listening&level=${level}&limit=${listenLimit}`).then(r => r.json()),
     ]);
 
-    setVocabQuestions(vocabRes.questions || []);
-    setGrammarReadingQuestions([...(grammarRes.questions || []), ...(readingRes.questions || [])]);
-    setListeningQuestions(listenRes.questions || []);
+    const vq = vocabRes.questions || [];
+    const grq = [...(grammarRes.questions || []), ...(readingRes.questions || [])];
+    const lq = listenRes.questions || [];
 
-    setPhase("vocab");
+    setVocabQuestions(vq);
+    setGrammarReadingQuestions(grq);
+    setListeningQuestions(lq);
+
+    if (vq.length > 0) setPhase("vocab");
+    else if (grq.length > 0) setPhase("grammar-reading");
+    else if (lq.length > 0) setPhase("listening");
+    else setPhase("done");
   }
 
   // Reset questions when level changes
@@ -134,12 +141,24 @@ export default function MockTestPage() {
           Section 1 of 3: Vocabulary (語彙) — {timeMap[level].vocab} minutes
         </div>
         <QuizEngine
+          key="vocab"
           questions={vocabQuestions}
           section="vocabulary"
           level={level}
           timed
           timeMinutes={timeMap[level].vocab}
-          onComplete={r => { setVocabResult(r); setPhase("grammar-reading"); }}
+          onComplete={r => {
+            setVocabResult(r);
+            if (grammarReadingQuestions.length > 0) {
+              setPhase("grammar-reading");
+            } else if (listeningQuestions.length > 0) {
+              setPhase("listening");
+            } else {
+              setGrammarReadingResult({ score: 0, total: 0 });
+              setListeningResult({ score: 0, total: 0 });
+              setPhase("done");
+            }
+          }}
           onBack={() => setPhase("select")}
         />
       </div>
@@ -153,12 +172,21 @@ export default function MockTestPage() {
           Section 2 of 3: Grammar & Reading (文法・読解) — {timeMap[level].grammarReading} minutes
         </div>
         <QuizEngine
+          key="grammar-reading"
           questions={grammarReadingQuestions}
           section="grammar"
           level={level}
           timed
           timeMinutes={timeMap[level].grammarReading}
-          onComplete={r => { setGrammarReadingResult(r); setPhase("listening"); }}
+          onComplete={r => {
+            setGrammarReadingResult(r);
+            if (listeningQuestions.length > 0) {
+              setPhase("listening");
+            } else {
+              setListeningResult({ score: 0, total: 0 });
+              setPhase("done");
+            }
+          }}
           onBack={() => setPhase("select")}
         />
       </div>
@@ -172,6 +200,7 @@ export default function MockTestPage() {
           Section 3 of 3: Listening (聴解) — {timeMap[level].listening} minutes
         </div>
         <QuizEngine
+          key="listening"
           questions={listeningQuestions}
           section="listening"
           level={level}
