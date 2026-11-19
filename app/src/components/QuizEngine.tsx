@@ -173,7 +173,7 @@ export default function QuizEngine({ questions, section, level, onComplete, onBa
         <p className="font-medium" style={{ fontFamily: q.promptJp ? "'Noto Sans JP', sans-serif" : undefined }}>
           {q.prompt}
         </p>
-        {q.promptJp && q.promptJp !== q.prompt && q.type !== "kanji-reading" && (
+        {q.promptJp && q.promptJp !== q.prompt && q.type !== "kanji-reading" && section !== "listening" && (
           <p className="text-sm text-gray-400 mt-1">{q.promptJp}</p>
         )}
       </div>
