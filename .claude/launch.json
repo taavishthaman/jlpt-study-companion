@@ -4,7 +4,7 @@
     {
       "name": "jlpt-app",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "app"],
+      "runtimeArgs": ["run", "dev"],
       "port": 3000
     }
   ]
